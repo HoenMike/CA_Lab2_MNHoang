@@ -1,74 +1,65 @@
 .data
-prompt: .asciiz "Input: "
-output: .asciiz "Output: "
-buffer: .space 100
-newline: .asciiz "\n"
+prompt_a: .asciiz "Enter value for a: "
+prompt_b: .asciiz "Enter value for b: "
+prompt_c: .asciiz "Enter value for c: "
+prompt_d: .asciiz "Enter value for d: "
+result_F: .asciiz "Result F: "
+result_G: .asciiz "Result G: "
+newline:  .asciiz "\n"
 
 .text
 .globl main
 main:
- 
-	# Print out the prompt
-	la $a0, prompt  
-	li $v0, 4  
-	syscall
- 
-	# Read a string
-	li $v0, 8
-	la $a0, buffer
-	li $a1, 100
-	syscall
+    # Read input values for a, b, c, and d
+    li $v0, 5
+    syscall
+    move $s0, $v0  # a
 
-	# Print a newline
-	la $a0, newline
-	li $v0, 4  
-	syscall
-	
-	# Capitalize the first letter of each word
-	la $t0, buffer
-	li $t1, 1  # Flag to indicate the start of a word
-	
-capitalize_loop:
-	lb $t2, ($t0)  # Load the current character
-	beqz $t2, print_result  # If null terminator, print the result
-	
-	# Check if the current character is a space or newline
-	beq $t2, 32, set_word_start
-	beq $t2, 10, set_word_start
-	
-	# Check if the current character is lowercase and we are at the start of a word
-	li $t3, 97
-	li $t4, 122
-	blt $t2, $t3, not_lowercase
-	bgt $t2, $t4, not_lowercase
-	beqz $t1, not_lowercase  # If not at the start of a word, do not capitalize
-	
-	# Capitalize the first letter of the word
-	sub $t2, $t2, 32
-	li $t1, 0  # Reset the flag as we have capitalized the first letter of the word
-	
-not_lowercase:
-	sb $t2, ($t0)  # Store the modified character
-	addi $t0, $t0, 1  # Move to the next character
-	j capitalize_loop
-	
-set_word_start:
-	li $t1, 1  # Set the flag to indicate the start of a word
-	addi $t0, $t0, 1  # Move to the next character
-	j capitalize_loop
-	
-print_result:
-	# Print out the result
-	la $a0, output
-	li $v0, 4  
-	syscall
- 
-	la $a0, buffer
-	li $v0, 4  
-	syscall
- 
-	la $a0, newline
-	li $v0, 4  
-	syscall
- 
-	jr $ra  # Return to caller (__start)
+    li $v0, 5
+    syscall
+    move $s1, $v0  # b
+
+    li $v0, 5
+    syscall
+    move $s2, $v0  # c
+
+    li $v0, 5
+    syscall
+    move $s3, $v0  # d
+
+    # Calculate F
+    add $t4, $s0, $s1  # a + b
+    sub $t5, $s2, $s3  # c - d
+    mul $t4, $t4, $t5  # (a + b) * (c - d)
+    mul $t5, $s0, $s0  # a^2
+    div $t4, $t5       # F = ((a + b) * (c - d)) / a^2
+
+    # Calculate G
+    addi $t0, $s0, 1   # a + 1
+    addi $t1, $s1, 2   # b + 2
+    sub $t2, $s2, $s0  # c - a
+    mul $t6, $t0, $t1  # (a + 1) * (b + 2)
+    div $t6, $t2       # G = ((a + 1) * (b + 2)) / (c - a)
+
+    # Print results
+    li $v0, 4
+    la $a0, result_F
+    syscall
+    move $a0, $t4
+    li $v0, 1
+    syscall
+
+    li $v0, 4
+    la $a0, newline
+    syscall
+
+    li $v0, 4
+    la $a0, result_G
+    syscall
+    move $a0, $t6
+    li $v0, 1
+    syscall
+
+    # Exit program
+    li $v0, 10
+    syscall
